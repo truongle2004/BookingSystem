@@ -106,6 +106,8 @@ jobs:
       - name: OWASP Dependency Check
         if: ${{ env.FROM_ORIGINAL_REPOSITORY == 'true' }}
         uses: dependency-check/Dependency-Check_Action@main
+        env:
+         JAVA_HOME: /opt/jdk
         with:
           project: 'booking-system'
           path: '.'
