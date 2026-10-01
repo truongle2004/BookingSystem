@@ -55,11 +55,18 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Java
+        id: setup-java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
           cache: maven
+
+      - name: Verify Java environment
+        run: |
+          test -n "$JAVA_HOME"
+          echo "JAVA_HOME=$JAVA_HOME"
+          java -version
 
       - name: Run Maven build and tests
         run: ./mvnw --batch-mode clean verify
