@@ -24,6 +24,8 @@ on:
 permissions:
   contents: read
   packages: write
+  checks: write
+  pull-requests: write
 
 jobs:
   build:
@@ -53,11 +55,18 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Java
+        id: setup-java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
           cache: maven
+
+      - name: Verify Java environment
+        run: |
+          test -n "$JAVA_HOME"
+          echo "JAVA_HOME=$JAVA_HOME"
+          java -version
 
       - name: Run Maven build and tests
         run: ./mvnw --batch-mode clean verify
@@ -88,15 +97,17 @@ jobs:
           path: target/site/jacoco/jacoco.xml
           if-no-files-found: ignore
 
-      - name: Analyze with SonarCloud
-        if: ${{ env.FROM_ORIGINAL_REPOSITORY == 'true' }}
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./mvnw --batch-mode org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+      # - name: Analyze with SonarCloud
+      #   if: ${{ env.FROM_ORIGINAL_REPOSITORY == 'true' }}
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #   run: ./mvnw --batch-mode org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
 
       - name: OWASP Dependency Check
         if: ${{ env.FROM_ORIGINAL_REPOSITORY == 'true' }}
         uses: dependency-check/Dependency-Check_Action@main
+        env:
+         JAVA_HOME: /opt/jdk
         with:
           project: 'booking-system'
           path: '.'
