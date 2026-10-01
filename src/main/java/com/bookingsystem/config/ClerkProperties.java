@@ -5,6 +5,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "app.clerk")
 public class ClerkProperties {
 
+	public static final String PREFIX = "app.clerk";
+
+	public static final String ISSUER_URI_PROPERTY = PREFIX + ".issuer-uri";
+
+	public static final String JWK_SET_URI_PROPERTY = PREFIX + ".jwk-set-uri";
+
+	public static final String AUDIENCE_PROPERTY = PREFIX + ".audience";
+
 	private String issuerUri;
 
 	private String jwkSetUri;

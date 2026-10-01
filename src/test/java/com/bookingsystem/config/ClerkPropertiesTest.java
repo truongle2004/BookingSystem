@@ -7,12 +7,24 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
 
+final class ClerkPropertiesTestValues {
+
+	static final String ISSUER_URI = "https://example.clerk.accounts.dev";
+
+	static final String JWK_SET_URI = ISSUER_URI + "/.well-known/jwks.json";
+
+	static final String AUDIENCE = "booking-api";
+
+	private ClerkPropertiesTestValues() {
+	}
+}
+
 @SpringBootTest(
 		classes = ClerkPropertiesTest.TestConfiguration.class,
 		properties = {
-			"app.clerk.issuer-uri=https://example.clerk.accounts.dev",
-			"app.clerk.jwk-set-uri=https://example.clerk.accounts.dev/.well-known/jwks.json",
-			"app.clerk.audience=booking-api"
+			ClerkProperties.ISSUER_URI_PROPERTY + "=" + ClerkPropertiesTestValues.ISSUER_URI,
+			ClerkProperties.JWK_SET_URI_PROPERTY + "=" + ClerkPropertiesTestValues.JWK_SET_URI,
+			ClerkProperties.AUDIENCE_PROPERTY + "=" + ClerkPropertiesTestValues.AUDIENCE
 		})
 class ClerkPropertiesTest {
 
@@ -21,10 +33,9 @@ class ClerkPropertiesTest {
 
 	@Test
 	void bindsClerkConfigurationProperties() {
-		assertThat(clerkProperties.getIssuerUri()).isEqualTo("https://example.clerk.accounts.dev");
-		assertThat(clerkProperties.getJwkSetUri())
-				.isEqualTo("https://example.clerk.accounts.dev/.well-known/jwks.json");
-		assertThat(clerkProperties.getAudience()).isEqualTo("booking-api");
+		assertThat(clerkProperties.getIssuerUri()).isEqualTo(ClerkPropertiesTestValues.ISSUER_URI);
+		assertThat(clerkProperties.getJwkSetUri()).isEqualTo(ClerkPropertiesTestValues.JWK_SET_URI);
+		assertThat(clerkProperties.getAudience()).isEqualTo(ClerkPropertiesTestValues.AUDIENCE);
 	}
 
 	@Configuration(proxyBeanMethods = false)
