@@ -1,3 +1,11 @@
 spring:
   application:
     name: bookingsystem
+app:
+  clerk:
+    # Clerk's issuer URL, for example: https://<instance>.clerk.accounts.dev
+    issuer-uri: ${CLERK_ISSUER_URI:}
+    # Optional explicit JWKS endpoint. Leave unset to use issuer metadata discovery.
+    jwk-set-uri: ${CLERK_JWK_SET_URI:}
+    # Optional audience validation value; enforcement will be added with security configuration.
+    audience: ${CLERK_AUDIENCE:}
