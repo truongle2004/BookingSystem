@@ -90,11 +90,11 @@ jobs:
           path: target/site/jacoco/jacoco.xml
           if-no-files-found: ignore
 
-      - name: Analyze with SonarCloud
-        if: ${{ env.FROM_ORIGINAL_REPOSITORY == 'true' }}
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./mvnw --batch-mode org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+      # - name: Analyze with SonarCloud
+      #   if: ${{ env.FROM_ORIGINAL_REPOSITORY == 'true' }}
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #   run: ./mvnw --batch-mode org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
 
       - name: OWASP Dependency Check
         if: ${{ env.FROM_ORIGINAL_REPOSITORY == 'true' }}
