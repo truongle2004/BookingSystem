@@ -2,10 +2,12 @@ package com.bookingsystem;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 /** Entry point for the booking system application. */
 @SpringBootApplication
-public final class BookingsystemApplication {
+@ConfigurationPropertiesScan
+public class BookingsystemApplication {
 
     private BookingsystemApplication() {
     }
