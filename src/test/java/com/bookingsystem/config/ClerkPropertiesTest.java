@@ -4,38 +4,35 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
 
-final class ClerkPropertiesTestValues {
-
-    static final String ISSUER_URI = "https://example.clerk.accounts.dev";
-
-    static final String JWK_SET_URI = ISSUER_URI + "/.well-known/jwks.json";
-
-    static final String AUDIENCE = "booking-api";
-
-    private ClerkPropertiesTestValues() {
-    }
-}
-
-@SpringBootTest(
-        classes = ClerkPropertiesTest.TestConfiguration.class,
-        properties = {
-            ClerkProperties.ISSUER_URI_PROPERTY + "=" + ClerkPropertiesTestValues.ISSUER_URI,
-            ClerkProperties.JWK_SET_URI_PROPERTY + "=" + ClerkPropertiesTestValues.JWK_SET_URI,
-            ClerkProperties.AUDIENCE_PROPERTY + "=" + ClerkPropertiesTestValues.AUDIENCE
-        })
 class ClerkPropertiesTest {
 
-    @org.springframework.beans.factory.annotation.Autowired
-    private ClerkProperties clerkProperties;
+    private static final String ISSUER_URI = "https://example.clerk.accounts.dev";
+
+    private static final String JWK_SET_URI = ISSUER_URI + "/.well-known/jwks.json";
+
+    private static final String AUDIENCE = "booking-api";
+
+    private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+            .withUserConfiguration(TestConfiguration.class);
 
     @Test
     void bindsClerkConfigurationProperties() {
-        assertThat(clerkProperties.getIssuerUri()).isEqualTo(ClerkPropertiesTestValues.ISSUER_URI);
-        assertThat(clerkProperties.getJwkSetUri()).isEqualTo(ClerkPropertiesTestValues.JWK_SET_URI);
-        assertThat(clerkProperties.getAudience()).isEqualTo(ClerkPropertiesTestValues.AUDIENCE);
+        contextRunner
+                .withPropertyValues(
+                        ClerkProperties.ISSUER_URI_PROPERTY + "=" + ISSUER_URI,
+                        ClerkProperties.JWK_SET_URI_PROPERTY + "=" + JWK_SET_URI,
+                        ClerkProperties.AUDIENCE_PROPERTY + "=" + AUDIENCE)
+                .run(context -> assertThat(context)
+                        .hasSingleBean(ClerkProperties.class)
+                        .getBean(ClerkProperties.class)
+                        .satisfies(properties -> {
+                            assertThat(properties.getIssuerUri()).isEqualTo(ISSUER_URI);
+                            assertThat(properties.getJwkSetUri()).isEqualTo(JWK_SET_URI);
+                            assertThat(properties.getAudience()).isEqualTo(AUDIENCE);
+                        }));
     }
 
     @Configuration(proxyBeanMethods = false)

@@ -1,6 +1,25 @@
 spring:
   application:
     name: bookingsystem
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/bookingsystem}
+    username: ${SPRING_DATASOURCE_USERNAME:bookingsystem}
+    password: ${SPRING_DATASOURCE_PASSWORD:bookingsystem}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  tracing:
+    sampling:
+      probability: ${OTEL_TRACES_SAMPLER_ARG:0.1}
+  opentelemetry:
+    resource-attributes:
+      service.namespace: bookingsystem
 app:
   clerk:
     # Clerk's issuer URL, for example: https://<instance>.clerk.accounts.dev
