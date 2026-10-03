@@ -33,7 +33,7 @@ class ApiDocumentationTest {
 
     @Test
     @DisplayName("serves the Scalar API reference")
-    void scalar_shouldReturnApiReference_whenRequestedWithoutAuthentication() throws Exception {
+    void scalarShouldReturnApiReferenceWhenRequestedWithoutAuthentication() throws Exception {
         mockMvc.perform(get("/scalar"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("text/html"));
@@ -41,7 +41,7 @@ class ApiDocumentationTest {
 
     @Test
     @DisplayName("serves the generated OpenAPI document")
-    void apiDocs_shouldReturnOpenApiDocument_whenRequestedWithoutAuthentication() throws Exception {
+    void apiDocsShouldReturnOpenApiDocumentWhenRequestedWithoutAuthentication() throws Exception {
         mockMvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("application/json"))
