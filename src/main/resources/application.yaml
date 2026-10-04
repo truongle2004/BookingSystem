@@ -20,6 +20,10 @@ management:
   opentelemetry:
     resource-attributes:
       service.namespace: bookingsystem
+scalar:
+  enabled: true
+  path: /scalar
+  url: /v3/api-docs
 app:
   clerk:
     # Clerk's issuer URL, for example: https://<instance>.clerk.accounts.dev
