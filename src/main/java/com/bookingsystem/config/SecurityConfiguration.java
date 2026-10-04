@@ -20,7 +20,7 @@ import org.springframework.util.StringUtils;
 @Configuration(proxyBeanMethods = false)
 public class SecurityConfiguration {
 
-    private static final String CLERK_JWKS_PATH = "/.well-known/jwks.json";
+    private static final String CLERK_JWKS_RELATIVE_PATH = ".well-known/jwks.json";
 
     /**
      * Allows public access to the API documentation while protecting application endpoints.
@@ -31,10 +31,15 @@ public class SecurityConfiguration {
      * @throws Exception if Spring Security cannot build the filter chain
      */
     @Bean
+    @SuppressWarnings({
+        "java:S112", // HttpSecurity.build() declares the generic checked Exception.
+        "java:S4502" // Safe because authentication only accepts stateless Authorization header bearer tokens.
+    })
     public SecurityFilterChain securityFilterChain(
             final HttpSecurity http,
             final ClerkProperties clerkProperties) throws Exception {
         http
+                // This resource server does not authenticate with automatically submitted browser cookies.
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -57,7 +62,9 @@ public class SecurityConfiguration {
         String issuerUri = clerkProperties.getIssuerUri();
         String jwkSetUri = clerkProperties.getJwkSetUri();
         if (!StringUtils.hasText(jwkSetUri)) {
-            jwkSetUri = issuerUri.replaceAll("/+$", "") + CLERK_JWKS_PATH;
+            jwkSetUri = issuerUri.endsWith("/")
+                    ? issuerUri + CLERK_JWKS_RELATIVE_PATH
+                    : issuerUri + "/" + CLERK_JWKS_RELATIVE_PATH;
         }
 
         NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
