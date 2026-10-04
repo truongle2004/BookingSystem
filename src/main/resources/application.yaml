@@ -30,5 +30,7 @@ app:
     issuer-uri: ${CLERK_ISSUER_URI:}
     # Optional explicit JWKS endpoint. Leave unset to use issuer metadata discovery.
     jwk-set-uri: ${CLERK_JWK_SET_URI:}
-    # Optional audience validation value; enforcement will be added with security configuration.
+    # Optional audience claim required by this API.
     audience: ${CLERK_AUDIENCE:}
+    # Comma-separated frontend origins accepted from Clerk's azp claim.
+    authorized-parties: ${CLERK_AUTHORIZED_PARTIES:}
