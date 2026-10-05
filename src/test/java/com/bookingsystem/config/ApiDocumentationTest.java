@@ -20,7 +20,9 @@ import org.springframework.test.web.servlet.MockMvc;
                 + "org.springframework.modulith.events.config.EventPublicationAutoConfiguration,"
                 + "org.springframework.modulith.events.config.EventExternalizationAutoConfiguration",
         "management.otlp.metrics.export.enabled=false",
-        "management.otlp.tracing.export.enabled=false"
+        "management.otlp.tracing.export.enabled=false",
+        "app.clerk.issuer-uri=https://example.clerk.accounts.dev",
+        "app.clerk.authorized-parties=https://booking.example.com"
 })
 @AutoConfigureMockMvc
 class ApiDocumentationTest {
@@ -46,5 +48,20 @@ class ApiDocumentationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("application/json"))
                 .andExpect(jsonPath("$.openapi").isNotEmpty());
+    }
+
+    @Test
+    @DisplayName("rejects unauthenticated requests to protected endpoints")
+    void protectedEndpointShouldReturnUnauthorizedWithoutAuthentication() throws Exception {
+        mockMvc.perform(get("/protected-resource"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("rejects malformed bearer tokens")
+    void protectedEndpointShouldReturnUnauthorizedForMalformedBearerToken() throws Exception {
+        mockMvc.perform(get("/protected-resource")
+                        .header("Authorization", "Bearer not-a-jwt"))
+                .andExpect(status().isUnauthorized());
     }
 }
