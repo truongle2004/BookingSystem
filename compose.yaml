@@ -13,12 +13,61 @@ services:
       OTEL_TRACES_EXPORTER: ${OTEL_TRACES_EXPORTER:-otlp}
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4318}
       OTEL_TRACES_SAMPLER_ARG: ${OTEL_TRACES_SAMPLER_ARG:-0.1}
+      LOGGING_FILE_NAME: /var/log/bookingsystem/application.log
     ports:
       - "${APP_PORT:-8080}:8080"
+    volumes:
+      - application_logs:/var/log/bookingsystem
     depends_on:
       postgres:
         condition: service_healthy
       otel-collector:
+        condition: service_started
+    restart: unless-stopped
+
+  alloy:
+    image: grafana/alloy:v1.20.0
+    environment:
+      APP_ENVIRONMENT: ${APP_ENVIRONMENT:-local}
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    volumes:
+      - ./observability/alloy-config.alloy:/etc/alloy/config.alloy:ro
+      - application_logs:/var/log/bookingsystem:ro
+      - alloy_data:/var/lib/alloy/data
+    ports:
+      - "${ALLOY_PORT:-12345}:12345"
+    depends_on:
+      loki:
+        condition: service_started
+    restart: unless-stopped
+
+  loki:
+    image: grafana/loki:3.7.0
+    command: ["-config.file=/etc/loki/config.yaml"]
+    volumes:
+      - ./observability/loki-config.yaml:/etc/loki/config.yaml:ro
+      - loki_data:/loki
+    ports:
+      - "${LOKI_PORT:-3100}:3100"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:12.4.0
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    depends_on:
+      loki:
         condition: service_started
     restart: unless-stopped
 
@@ -50,4 +99,8 @@ services:
     restart: unless-stopped
 
 volumes:
+  alloy_data:
+  application_logs:
+  grafana_data:
+  loki_data:
   postgres_data:

@@ -1,0 +1,36 @@
+local.file_match "bookingsystem" {
+  path_targets = [
+    {
+      "__path__"     = "/var/log/bookingsystem/*.log",
+      "service_name" = "bookingsystem",
+      "environment"  = sys.env("APP_ENVIRONMENT"),
+    },
+  ]
+}
+
+loki.source.file "bookingsystem" {
+  targets    = local.file_match.bookingsystem.targets
+  forward_to = [loki.process.bookingsystem.receiver]
+}
+
+loki.process "bookingsystem" {
+  stage.json {
+    expressions = {
+      level = "level",
+    }
+  }
+
+  stage.labels {
+    values = {
+      level = "",
+    }
+  }
+
+  forward_to = [loki.write.local.receiver]
+}
+
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
