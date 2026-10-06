@@ -1,6 +1,6 @@
 package com.bookingsystem.config;
 
-import org.springframework.http.HttpStatus;
+import com.bookingsystem.platform.web.ApiErrorWriter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -10,10 +10,10 @@ import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.JwtIssuerValidator;
+import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.util.StringUtils;
 
 /** Configures HTTP access rules for the application and its API documentation. */
@@ -37,21 +37,32 @@ public class SecurityConfiguration {
     })
     public SecurityFilterChain securityFilterChain(
             final HttpSecurity http,
-            final ClerkProperties clerkProperties) throws Exception {
+            final ClerkProperties clerkProperties,
+            final ApiErrorWriter errorWriter) throws Exception {
         http
                 // This resource server does not authenticate with automatically submitted browser cookies.
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exceptions -> exceptions
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+                        .authenticationEntryPoint((request, response, exception) -> errorWriter.write(
+                                request, response, 401, "UNAUTHENTICATED", "Authentication is required."))
+                        .accessDeniedHandler((request, response, exception) -> errorWriter.write(
+                                request, response, 403, "FORBIDDEN", "Access is forbidden.")))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/error", "/scalar", "/scalar/**", "/v3/api-docs", "/v3/api-docs/**")
+                        .requestMatchers(
+                                "/error", "/health/**", "/openapi.yaml",
+                                "/scalar", "/scalar/**", "/v3/api-docs", "/v3/api-docs/**")
                         .permitAll()
-                        .anyRequest().authenticated());
+                        .requestMatchers("/v1/**").authenticated()
+                        .anyRequest().permitAll());
 
         if (clerkProperties.isConfigured()) {
             http.oauth2ResourceServer(resourceServer -> resourceServer
+                    .authenticationEntryPoint((request, response, exception) -> errorWriter.write(
+                            request, response, 401, "UNAUTHENTICATED", "Authentication is required."))
+                    .accessDeniedHandler((request, response, exception) -> errorWriter.write(
+                            request, response, 403, "FORBIDDEN", "Access is forbidden."))
                     .jwt(jwt -> jwt.decoder(clerkJwtDecoder(clerkProperties))));
         }
 
@@ -68,11 +79,13 @@ public class SecurityConfiguration {
         }
 
         NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
-        OAuth2TokenValidator<Jwt> defaultValidators = JwtValidators.createDefaultWithIssuer(issuerUri);
+        JwtTimestampValidator timestampValidator = new JwtTimestampValidator(clerkProperties.getClockSkew());
+        OAuth2TokenValidator<Jwt> issuerValidator = new JwtIssuerValidator(issuerUri);
         OAuth2TokenValidator<Jwt> clerkClaimsValidator = new ClerkJwtClaimsValidator(
                 clerkProperties.getAudience(),
                 clerkProperties.getAuthorizedParties());
-        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(defaultValidators, clerkClaimsValidator));
+        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
+                timestampValidator, issuerValidator, clerkClaimsValidator));
         return decoder;
     }
 }

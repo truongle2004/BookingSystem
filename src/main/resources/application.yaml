@@ -1,24 +1,40 @@
 spring:
   application:
     name: bookingsystem
+  config:
+    import: optional:file:.env[.properties]
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/bookingsystem}
-    username: ${SPRING_DATASOURCE_USERNAME:bookingsystem}
-    password: ${SPRING_DATASOURCE_PASSWORD:bookingsystem}
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USER}
+    password: ${DATABASE_PASSWORD}
+    hikari:
+      connection-timeout: ${DB_CONNECT_TIMEOUT:3s}
+      maximum-pool-size: ${DB_POOL_MAX:10}
+  flyway:
+    enabled: false
+  jdbc:
+    template:
+      query-timeout: ${DB_QUERY_TIMEOUT:5s}
+  mvc:
+    throw-exception-if-no-handler-found: true
+  web:
+    resources:
+      add-mappings: false
+server:
+  address: ${HTTP_ADDRESS:0.0.0.0}
+  port: ${HTTP_PORT:8080}
+  shutdown: graceful
+  tomcat:
+    connection-timeout: ${HTTP_READ_TIMEOUT:5s}
+spring.lifecycle.timeout-per-shutdown-phase: 20s
 logging:
+  level:
+    root: ${LOG_LEVEL:INFO}
   structured:
     format:
       console: ${CONSOLE_LOG_STRUCTURED_FORMAT:logstash}
       file: ${FILE_LOG_STRUCTURED_FORMAT:logstash}
 management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics
-  endpoint:
-    health:
-      probes:
-        enabled: true
   tracing:
     sampling:
       probability: ${OTEL_TRACES_SAMPLER_ARG:0.1}
@@ -28,8 +44,9 @@ management:
 scalar:
   enabled: true
   path: /scalar
-  url: /v3/api-docs
+  url: /openapi.yaml
 app:
+  environment: ${APP_ENV}
   clerk:
     # Clerk's issuer URL, for example: https://<instance>.clerk.accounts.dev
     issuer-uri: ${CLERK_ISSUER_URI:}
@@ -39,3 +56,4 @@ app:
     audience: ${CLERK_AUDIENCE:}
     # Comma-separated frontend origins accepted from Clerk's azp claim.
     authorized-parties: ${CLERK_AUTHORIZED_PARTIES:}
+    clock-skew: ${CLERK_CLOCK_SKEW:30s}

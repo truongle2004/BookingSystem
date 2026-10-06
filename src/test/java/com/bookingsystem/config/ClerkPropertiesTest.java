@@ -30,6 +30,7 @@ class ClerkPropertiesTest {
                         ClerkProperties.ISSUER_URI_PROPERTY + "=" + ISSUER_URI,
                         ClerkProperties.JWK_SET_URI_PROPERTY + "=" + JWK_SET_URI,
                         ClerkProperties.AUDIENCE_PROPERTY + "=" + AUDIENCE,
+                        ClerkProperties.CLOCK_SKEW_PROPERTY + "=45s",
                         ClerkProperties.AUTHORIZED_PARTIES_PROPERTY + "="
                                 + FIRST_AUTHORIZED_PARTY + "," + SECOND_AUTHORIZED_PARTY)
                 .run(context -> assertThat(context)
@@ -41,6 +42,7 @@ class ClerkPropertiesTest {
                             assertThat(properties.getAudience()).isEqualTo(AUDIENCE);
                             assertThat(properties.getAuthorizedParties())
                                     .isEqualTo(List.of(FIRST_AUTHORIZED_PARTY, SECOND_AUTHORIZED_PARTY));
+                            assertThat(properties.getClockSkew()).isEqualTo(java.time.Duration.ofSeconds(45));
                             assertThat(properties.isConfigured()).isTrue();
                         }));
     }

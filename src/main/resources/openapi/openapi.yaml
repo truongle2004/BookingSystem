@@ -1,0 +1,114 @@
+openapi: 3.1.0
+info:
+  title: Booking System API
+  version: 0.1.0
+  description: Public Milestone 0 platform contract.
+servers:
+  - url: /
+paths:
+  /health/live:
+    get:
+      operationId: getLiveness
+      summary: Check process liveness
+      security: []
+      responses:
+        '200':
+          description: The process is running.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+  /health/ready:
+    get:
+      operationId: getReadiness
+      summary: Check database readiness
+      security: []
+      responses:
+        '200':
+          description: The application is ready.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        '503':
+          description: The database is unavailable.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+              example:
+                error:
+                  code: SERVICE_UNAVAILABLE
+                  message: Database is not reachable.
+                  request_id: 8b2d5c1a-0e9f-4c37-a6d4-2f1e9b7c3a55
+components:
+  securitySchemes:
+    clerkBearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Clerk session token validated locally against Clerk JWKS.
+  headers:
+    RequestId:
+      description: Valid caller-supplied request ID or a generated UUID.
+      schema:
+        type: string
+        pattern: '^[A-Za-z0-9_-]{1,64}$'
+  responses:
+    Unauthenticated:
+      description: Authentication is missing or invalid.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    Forbidden:
+      description: The authenticated caller is not authorized.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+  schemas:
+    Health:
+      type: object
+      additionalProperties: false
+      required: [status]
+      properties:
+        status:
+          type: string
+          const: UP
+    ErrorEnvelope:
+      type: object
+      additionalProperties: false
+      required: [error]
+      properties:
+        error:
+          $ref: '#/components/schemas/Error'
+    Error:
+      type: object
+      additionalProperties: false
+      required: [code, message, request_id]
+      properties:
+        code:
+          type: string
+          examples: [UNAUTHENTICATED, FORBIDDEN, NOT_FOUND, SERVICE_UNAVAILABLE]
+        message:
+          type: string
+        request_id:
+          type: string
+security:
+  - clerkBearerAuth: []
