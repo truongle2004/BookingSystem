@@ -1,10 +1,16 @@
 package com.bookingsystem.platform.web;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestValueException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
@@ -12,6 +18,18 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 /** Maps MVC failures to stable, non-sensitive API errors. */
 @RestControllerAdvice
 public class ApiExceptionHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApiExceptionHandler.class);
+
+    @ExceptionHandler({
+        MethodArgumentNotValidException.class,
+        MissingRequestValueException.class,
+        TypeMismatchException.class,
+        ConstraintViolationException.class
+    })
+    public ResponseEntity<ApiErrorResponse> invalidRequest(final HttpServletRequest request) {
+        return response(request, HttpStatus.BAD_REQUEST, "INVALID_REQUEST", "The request is invalid.");
+    }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiErrorResponse> malformedRequest(final HttpServletRequest request) {
@@ -29,7 +47,10 @@ public class ApiExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiErrorResponse> internalError(final HttpServletRequest request) {
+    public ResponseEntity<ApiErrorResponse> internalError(
+            final HttpServletRequest request,
+            final Exception exception) {
+        LOGGER.error("Unhandled request failure", exception);
         return response(request, HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", "An unexpected error occurred.");
     }
 

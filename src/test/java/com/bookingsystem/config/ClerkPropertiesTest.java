@@ -31,6 +31,8 @@ class ClerkPropertiesTest {
                         ClerkProperties.JWK_SET_URI_PROPERTY + "=" + JWK_SET_URI,
                         ClerkProperties.AUDIENCE_PROPERTY + "=" + AUDIENCE,
                         ClerkProperties.CLOCK_SKEW_PROPERTY + "=45s",
+                        ClerkProperties.JWK_CONNECT_TIMEOUT_PROPERTY + "=2s",
+                        ClerkProperties.JWK_READ_TIMEOUT_PROPERTY + "=4s",
                         ClerkProperties.AUTHORIZED_PARTIES_PROPERTY + "="
                                 + FIRST_AUTHORIZED_PARTY + "," + SECOND_AUTHORIZED_PARTY)
                 .run(context -> assertThat(context)
@@ -43,6 +45,8 @@ class ClerkPropertiesTest {
                             assertThat(properties.getAuthorizedParties())
                                     .isEqualTo(List.of(FIRST_AUTHORIZED_PARTY, SECOND_AUTHORIZED_PARTY));
                             assertThat(properties.getClockSkew()).isEqualTo(java.time.Duration.ofSeconds(45));
+                            assertThat(properties.getJwkConnectTimeout()).isEqualTo(java.time.Duration.ofSeconds(2));
+                            assertThat(properties.getJwkReadTimeout()).isEqualTo(java.time.Duration.ofSeconds(4));
                             assertThat(properties.isConfigured()).isTrue();
                         }));
     }

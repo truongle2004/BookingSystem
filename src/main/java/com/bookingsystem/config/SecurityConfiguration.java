@@ -14,7 +14,9 @@ import org.springframework.security.oauth2.jwt.JwtIssuerValidator;
 import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
 
 /** Configures HTTP access rules for the application and its API documentation. */
 @Configuration(proxyBeanMethods = false)
@@ -78,7 +80,12 @@ public class SecurityConfiguration {
                     : issuerUri + "/" + CLERK_JWKS_RELATIVE_PATH;
         }
 
-        NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(clerkProperties.getJwkConnectTimeout());
+        requestFactory.setReadTimeout(clerkProperties.getJwkReadTimeout());
+        NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri)
+                .restOperations(new RestTemplate(requestFactory))
+                .build();
         JwtTimestampValidator timestampValidator = new JwtTimestampValidator(clerkProperties.getClockSkew());
         OAuth2TokenValidator<Jwt> issuerValidator = new JwtIssuerValidator(issuerUri);
         OAuth2TokenValidator<Jwt> clerkClaimsValidator = new ClerkJwtClaimsValidator(
