@@ -8,7 +8,7 @@ spring:
     username: ${DATABASE_USER}
     password: ${DATABASE_PASSWORD}
     hikari:
-      connection-timeout: ${DB_CONNECT_TIMEOUT:3s}
+      connection-timeout: ${DB_CONNECT_TIMEOUT:3000}
       maximum-pool-size: ${DB_POOL_MAX:10}
   flyway:
     enabled: false
@@ -57,3 +57,5 @@ app:
     # Comma-separated frontend origins accepted from Clerk's azp claim.
     authorized-parties: ${CLERK_AUTHORIZED_PARTIES:}
     clock-skew: ${CLERK_CLOCK_SKEW:30s}
+    jwk-connect-timeout: ${CLERK_JWK_CONNECT_TIMEOUT:3s}
+    jwk-read-timeout: ${CLERK_JWK_READ_TIMEOUT:5s}

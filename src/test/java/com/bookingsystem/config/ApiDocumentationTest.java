@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.core.env.Environment;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @DisplayName("API documentation")
@@ -36,11 +37,14 @@ class ApiDocumentationTest {
 
     private final MockMvc mockMvc;
 
+    private final Environment environment;
+
     @MockitoBean
     private JdbcTemplate jdbcTemplate;
 
-    ApiDocumentationTest(@Autowired final MockMvc mockMvc) {
+    ApiDocumentationTest(@Autowired final MockMvc mockMvc, @Autowired final Environment environment) {
         this.mockMvc = mockMvc;
+        this.environment = environment;
     }
 
     @Test
@@ -102,5 +106,35 @@ class ApiDocumentationTest {
                 .andExpect(jsonPath("$.error.code").value("SERVICE_UNAVAILABLE"))
                 .andExpect(jsonPath("$.error.message").value("Database is not reachable."))
                 .andExpect(jsonPath("$.error.request_id").value("readiness_1"));
+    }
+
+    @Test
+    @DisplayName("reports readiness when the database responds")
+    void readinessShouldReturnUpWhenDatabaseIsAvailable() throws Exception {
+        when(jdbcTemplate.queryForObject("SELECT 1", Integer.class)).thenReturn(1);
+
+        mockMvc.perform(get("/health/ready"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("UP"));
+    }
+
+    @Test
+    @DisplayName("configures graceful shutdown and required timeouts")
+    void platformTimeoutsShouldBeConfigured() {
+        org.assertj.core.api.Assertions.assertThat(environment.getProperty("server.shutdown"))
+                .isEqualTo("graceful");
+        org.assertj.core.api.Assertions.assertThat(environment.getProperty(
+                        "spring.lifecycle.timeout-per-shutdown-phase"))
+                .isEqualTo("20s");
+        org.assertj.core.api.Assertions.assertThat(environment.getProperty("server.tomcat.connection-timeout"))
+                .isNotBlank();
+        org.assertj.core.api.Assertions.assertThat(environment.getProperty("spring.datasource.hikari.connection-timeout"))
+                .isNotBlank();
+        org.assertj.core.api.Assertions.assertThat(environment.getProperty("spring.jdbc.template.query-timeout"))
+                .isNotBlank();
+        org.assertj.core.api.Assertions.assertThat(environment.getProperty("app.clerk.jwk-connect-timeout"))
+                .isNotBlank();
+        org.assertj.core.api.Assertions.assertThat(environment.getProperty("app.clerk.jwk-read-timeout"))
+                .isNotBlank();
     }
 }

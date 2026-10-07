@@ -9,7 +9,7 @@ services:
       DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-bookingsystem}
       DATABASE_USER: ${POSTGRES_USER:-bookingsystem}
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-bookingsystem}
-      DB_CONNECT_TIMEOUT: ${DB_CONNECT_TIMEOUT:-3s}
+      DB_CONNECT_TIMEOUT: ${DB_CONNECT_TIMEOUT:-3000}
       DB_QUERY_TIMEOUT: ${DB_QUERY_TIMEOUT:-5s}
       DB_POOL_MAX: ${DB_POOL_MAX:-10}
       CLERK_ISSUER_URI: ${CLERK_ISSUER_URI:-}
@@ -17,6 +17,8 @@ services:
       CLERK_AUDIENCE: ${CLERK_AUDIENCE:-}
       CLERK_AUTHORIZED_PARTIES: ${CLERK_AUTHORIZED_PARTIES:-}
       CLERK_CLOCK_SKEW: ${CLERK_CLOCK_SKEW:-30s}
+      CLERK_JWK_CONNECT_TIMEOUT: ${CLERK_JWK_CONNECT_TIMEOUT:-3s}
+      CLERK_JWK_READ_TIMEOUT: ${CLERK_JWK_READ_TIMEOUT:-5s}
       OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-bookingsystem}
       OTEL_TRACES_EXPORTER: ${OTEL_TRACES_EXPORTER:-otlp}
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4318}
@@ -27,11 +29,20 @@ services:
     volumes:
       - application_logs:/var/log/bookingsystem
     depends_on:
+      log-permissions:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
       otel-collector:
         condition: service_started
     restart: unless-stopped
+
+  log-permissions:
+    image: alpine:3.22
+    command: ["chown", "-R", "10001:10001", "/var/log/bookingsystem"]
+    volumes:
+      - application_logs:/var/log/bookingsystem
+    restart: "no"
 
   alloy:
     image: grafana/alloy:v1.20.0

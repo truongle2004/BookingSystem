@@ -1,6 +1,7 @@
 package com.bookingsystem.config;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.Set;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.env.Environment;
@@ -51,11 +52,34 @@ public class PlatformConfigurationValidator implements InitializingBean {
         if ("production".equals(appEnvironment) && !"https".equalsIgnoreCase(issuerUri.getScheme())) {
             throw configurationError("CLERK_ISSUER_URI must use https when APP_ENV=production");
         }
+        if (StringUtils.hasText(clerkProperties.getJwkSetUri())) {
+            requireAbsoluteUri("CLERK_JWK_SET_URI", clerkProperties.getJwkSetUri());
+        }
+        requirePositiveDuration("CLERK_CLOCK_SKEW", clerkProperties.getClockSkew());
+        requirePositiveDuration("CLERK_JWK_CONNECT_TIMEOUT", clerkProperties.getJwkConnectTimeout());
+        requirePositiveDuration("CLERK_JWK_READ_TIMEOUT", clerkProperties.getJwkReadTimeout());
     }
 
     private void requireText(final String variable, final String value) {
         if (!StringUtils.hasText(value)) {
             throw configurationError(variable + " is required");
+        }
+    }
+
+    private void requireAbsoluteUri(final String variable, final String value) {
+        try {
+            URI uri = URI.create(value);
+            if (!uri.isAbsolute() || !StringUtils.hasText(uri.getHost())) {
+                throw configurationError(variable + " must be a valid absolute URI");
+            }
+        } catch (IllegalArgumentException exception) {
+            throw configurationError(variable + " must be a valid absolute URI");
+        }
+    }
+
+    private void requirePositiveDuration(final String variable, final Duration value) {
+        if (value == null || value.isZero() || value.isNegative()) {
+            throw configurationError(variable + " must be greater than zero");
         }
     }
 

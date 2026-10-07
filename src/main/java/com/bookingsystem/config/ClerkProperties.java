@@ -21,6 +21,10 @@ public class ClerkProperties {
 
     public static final String CLOCK_SKEW_PROPERTY = PREFIX + ".clock-skew";
 
+    public static final String JWK_CONNECT_TIMEOUT_PROPERTY = PREFIX + ".jwk-connect-timeout";
+
+    public static final String JWK_READ_TIMEOUT_PROPERTY = PREFIX + ".jwk-read-timeout";
+
     private String issuerUri;
 
     private String jwkSetUri;
@@ -30,6 +34,10 @@ public class ClerkProperties {
     private List<String> authorizedParties = new ArrayList<>();
 
     private Duration clockSkew = Duration.ofSeconds(30);
+
+    private Duration jwkConnectTimeout = Duration.ofSeconds(3);
+
+    private Duration jwkReadTimeout = Duration.ofSeconds(5);
 
     public String getIssuerUri() {
         return issuerUri;
@@ -73,5 +81,21 @@ public class ClerkProperties {
 
     public void setClockSkew(final Duration clockSkew) {
         this.clockSkew = clockSkew;
+    }
+
+    public Duration getJwkConnectTimeout() {
+        return jwkConnectTimeout;
+    }
+
+    public void setJwkConnectTimeout(final Duration jwkConnectTimeout) {
+        this.jwkConnectTimeout = jwkConnectTimeout;
+    }
+
+    public Duration getJwkReadTimeout() {
+        return jwkReadTimeout;
+    }
+
+    public void setJwkReadTimeout(final Duration jwkReadTimeout) {
+        this.jwkReadTimeout = jwkReadTimeout;
     }
 }
