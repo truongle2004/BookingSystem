@@ -30,21 +30,22 @@
 
 | Variable | Required | Default / format |
 |---|---|---|
-| `APP_ENV` | Yes | `local`, `test` or `production` |
-| `HTTP_ADDRESS` | No | `0.0.0.0:8080` |
-| `DATABASE_URL` | Yes | `jdbc:postgresql://host:port/db` |
-| `DATABASE_USER` | Yes | |
-| `DATABASE_PASSWORD` | Yes | Never logged |
-| `LOG_LEVEL` | No | |
-| `HTTP_READ_TIMEOUT` | No | |
+| `APP_ENV` | Yes | No default; allowed: `local`, `test`, `production` |
+| `HTTP_ADDRESS` | No | `0.0.0.0` |
+| `HTTP_PORT` | No | `8080` |
+| `DATABASE_URL` | Yes | No default; must start with `jdbc:postgresql://` |
+| `DATABASE_USER` | Yes | No default |
+| `DATABASE_PASSWORD` | Yes | No default; never logged |
+| `LOG_LEVEL` | No | `INFO` |
+| `HTTP_READ_TIMEOUT` | No | `5s` |
 | `DB_CONNECT_TIMEOUT` | No | `3s` |
 | `DB_QUERY_TIMEOUT` | No | `5s` |
-| `DB_POOL_MAX` | No | |
+| `DB_POOL_MAX` | No | `10` |
 | `CLERK_ISSUER_URI` | Yes | HTTPS in production |
 | `CLERK_JWK_SET_URI` | No | `<issuer>/.well-known/jwks.json` (verify) |
 | `CLERK_AUDIENCE` | No | |
 | `CLERK_AUTHORIZED_PARTIES` | No | Checks the `azp` claim |
-| `CLERK_CLOCK_SKEW` | No | |
+| `CLERK_CLOCK_SKEW` | No | `30s` |
 | `HOLD_DURATION` | No | Reserved, commented out in `.env.example`. Unused until M2. Default 10 minutes. |
 
 ### 3.4 Milestone 0 use cases and examples
@@ -102,7 +103,8 @@ X-Request-Id: 8b2d5c1a-0e9f-4c37-a6d4-2f1e9b7c3a55
 }
 ```
 
-The 503 body may be the standard envelope or `{ "status": "DOWN" }`. Pick one, document it in OpenAPI, and keep it stable.
+The 503 response always uses the standard error envelope shown above. This is published in the OpenAPI document
+and must remain stable.
 
 #### UC-00-3: Reject unauthenticated call to a protected path (Anonymous)
 

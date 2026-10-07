@@ -1,6 +1,7 @@
 package com.bookingsystem.config;
 
 import java.util.ArrayList;
+import java.time.Duration;
 import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.StringUtils;
@@ -18,6 +19,8 @@ public class ClerkProperties {
 
     public static final String AUTHORIZED_PARTIES_PROPERTY = PREFIX + ".authorized-parties";
 
+    public static final String CLOCK_SKEW_PROPERTY = PREFIX + ".clock-skew";
+
     private String issuerUri;
 
     private String jwkSetUri;
@@ -25,6 +28,8 @@ public class ClerkProperties {
     private String audience;
 
     private List<String> authorizedParties = new ArrayList<>();
+
+    private Duration clockSkew = Duration.ofSeconds(30);
 
     public String getIssuerUri() {
         return issuerUri;
@@ -60,5 +65,13 @@ public class ClerkProperties {
 
     public boolean isConfigured() {
         return StringUtils.hasText(issuerUri);
+    }
+
+    public Duration getClockSkew() {
+        return clockSkew;
+    }
+
+    public void setClockSkew(final Duration clockSkew) {
+        this.clockSkew = clockSkew;
     }
 }

@@ -3,13 +3,20 @@ services:
     build:
       context: .
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-bookingsystem}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-bookingsystem}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-bookingsystem}
+      APP_ENV: ${APP_ENV:-local}
+      HTTP_ADDRESS: 0.0.0.0
+      HTTP_PORT: 8080
+      DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-bookingsystem}
+      DATABASE_USER: ${POSTGRES_USER:-bookingsystem}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-bookingsystem}
+      DB_CONNECT_TIMEOUT: ${DB_CONNECT_TIMEOUT:-3s}
+      DB_QUERY_TIMEOUT: ${DB_QUERY_TIMEOUT:-5s}
+      DB_POOL_MAX: ${DB_POOL_MAX:-10}
       CLERK_ISSUER_URI: ${CLERK_ISSUER_URI:-}
       CLERK_JWK_SET_URI: ${CLERK_JWK_SET_URI:-}
       CLERK_AUDIENCE: ${CLERK_AUDIENCE:-}
       CLERK_AUTHORIZED_PARTIES: ${CLERK_AUTHORIZED_PARTIES:-}
+      CLERK_CLOCK_SKEW: ${CLERK_CLOCK_SKEW:-30s}
       OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-bookingsystem}
       OTEL_TRACES_EXPORTER: ${OTEL_TRACES_EXPORTER:-otlp}
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4318}

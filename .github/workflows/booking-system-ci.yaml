@@ -104,6 +104,10 @@ jobs:
       #   run: ./mvnw --batch-mode org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
 
       - name: OWASP Dependency Check
+        # This advisory depends on external NVD/Sonatype services. A transient outage must not
+        # hide the deterministic compile, test, and packaging checks above.
+        continue-on-error: true
+        timeout-minutes: 5
         if: ${{ env.FROM_ORIGINAL_REPOSITORY == 'true' }}
         uses: dependency-check/Dependency-Check_Action@main
         env:
@@ -112,9 +116,10 @@ jobs:
           project: 'booking-system'
           path: '.'
           format: 'HTML'
+          args: '--disableCentral'
 
       - name: Upload OWASP Dependency Check results
-        if: ${{ env.FROM_ORIGINAL_REPOSITORY == 'true' }}
+        if: ${{ always() && env.FROM_ORIGINAL_REPOSITORY == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: owasp-dependency-check-report

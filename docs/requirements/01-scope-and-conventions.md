@@ -50,6 +50,17 @@ Every error uses this shape. No stack traces, no raw database text.
 | 500 | Unexpected failure | `INTERNAL_ERROR` |
 | 503 | Dependency unavailable (readiness only) | `SERVICE_UNAVAILABLE` |
 
-Codes beyond `ROOM_UNAVAILABLE` and `IDEMPOTENCY_CONFLICT` are proposed names. Agents may rename them, but must keep them stable once published in `api/openapi.yaml`.
+These codes are public API values. Changes require an explicit contract review and an OpenAPI update.
+
+### 1.4 Authentication and authorization
+
+- `/health/live`, `/health/ready`, `/openapi.yaml`, `/scalar/**` and `/v3/api-docs/**` are anonymous.
+- Product endpoints under `/v1/**` require `Authorization: Bearer <Clerk session token>`.
+- Missing, malformed, expired, not-yet-valid, wrong-issuer, wrong-signature, wrong-audience and rejected
+  authorized-party tokens all return the same `401 UNAUTHENTICATED` envelope.
+- Authenticated callers without a required role or ownership return `403 FORBIDDEN`. Endpoints that hide the
+  existence of another owner's resource return `404 NOT_FOUND` instead.
+- Identity always comes from the verified token. Local roles and ownership checks are introduced in M1 and must
+  not be inferred from unapproved token claims.
 
 ---
